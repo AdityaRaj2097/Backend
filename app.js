@@ -1,4 +1,5 @@
 // import { content } from "./Static/secret";
+
 let content = require("./Static/secret");
 const express = require("express");
 const app = express();
@@ -11,7 +12,7 @@ app.use("/user", userRouter);
 userRouter
   .route("/")
   .get(getUser)
-  .post(postUser)
+  .post(bodycheker, createUser)
   .patch(updateUser)
   .delete(deleteUser);
 
@@ -19,9 +20,20 @@ function getUser(req, res) {
   res.send(content);
 }
 
-function postUser(req, res) {
+function bodycheker(req, res, next) {
+  console.log(" inside the body checker");
+  let isPresent = Object.keys(req.body).length;
+  if (isPresent) {
+    // next is used for exuting the next code whihc are availabe for running
+    next();
+  } else {
+    // matalb yeah ki agr else m ayga to create use ny chalega becasue yha humne next call ny kiya and humne yhi se retrun kr diya hai
+    res.send("Kindly Send the data inside body");
+  }
+}
+function createUser(req, res) {
   // console.log(req.body);
- 
+
   let body = req.body;
 
   // users = req.body;
@@ -64,5 +76,5 @@ app.listen("5000", function () {
 });
 
 app.get("/", (req, res) => {
-  res.send("hello world 2sss");
+  res.sendFile("Static/index.html", { root: __dirname });
 });
