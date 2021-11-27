@@ -3,18 +3,26 @@
 let content = require("./Static/secret");
 const express = require("express");
 const app = express();
+const path = require("path");
+let fs = require("fs");
 
 //  By the help o fthis we get the data in json format
 app.use(express.json());
+app.use(express.static("Static"));
 
 const userRouter = express.Router();
+const authRouter = express.Router();
 app.use("/user", userRouter);
+app.use("/auth", authRouter);
+
 userRouter
   .route("/")
   .get(getUser)
   .post(bodycheker, createUser)
   .patch(updateUser)
   .delete(deleteUser);
+
+authRouter.route("/signup").post(bodycheker, signupUser);
 
 function getUser(req, res) {
   res.send(content);
@@ -38,12 +46,32 @@ function createUser(req, res) {
 
   // users = req.body;
   content.push(body);
+  fs.writeFileSync("./Static/secret.json", JSON.stringify(content));
   res.json({
     message: "data received successfully",
     user: req.body,
   });
 }
 
+function signupUser(req, res) {
+  let { name, email, password, confirmPassword } = req.body;
+  console.log("req.body", req.body);
+  if (password == confirmPassword) {
+    let newUser = { name, email, password };
+    // entry put
+    content.push(newUser);
+    // save in the datastorage
+    console.log(" newuser _____", newUser);
+    fs.writeFileSync("./Static/secret.json", JSON.stringify(content));
+    res.status(201).json({
+      createdUser: newUser,
+    });
+  } else {
+    res.status(422).json({
+      message: "password and confirm password do not match",
+    });
+  }
+}
 function updateUser(req, res) {
   console.log("req.body-> ", req.body);
   //update data in users obj
@@ -77,4 +105,9 @@ app.listen("5000", function () {
 
 app.get("/", (req, res) => {
   res.sendFile("Static/index.html", { root: __dirname });
+});
+
+app.use(function (req, res) {
+  // console.log("fullPath", fullPath);
+  res.status(404).sendFile(path.join(__dirname, "./Static/404.html"));
 });
