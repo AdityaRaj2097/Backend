@@ -17,12 +17,13 @@ app.use("/auth", authRouter);
 
 userRouter
   .route("/")
-  .get(getUser)
+  .get(protectRoute, getUser)
   .post(bodycheker, createUser)
   .patch(updateUser)
   .delete(deleteUser);
 
 authRouter.route("/signup").post(bodycheker, signupUser);
+authRouter.route("/login").post(bodycheker, loginUser);
 
 function getUser(req, res) {
   res.send(content);
@@ -69,6 +70,40 @@ function signupUser(req, res) {
   } else {
     res.status(422).json({
       message: "password and confirm password do not match",
+    });
+  }
+}
+
+function protectRoute(req, res, next) {
+  console.log("reached body checker");
+  // jwt
+  // -> verify everytime that if
+  // you are bringing the token to get your response
+  let isallowed = false;
+  if (isallowed) {
+    next();
+  } else {
+    res.send("kindly login to access this resource ");
+  }
+}
+function loginUser(req, res) {
+  let { email, password } = req.body;
+  let obj = content.find((obj) => {
+    return obj.email == email;
+  });
+  if (!obj) {
+    return res.status(404).json({
+      message: "User not found",
+    });
+  }
+  if (obj.password == password) {
+    res.status(200).json({
+      message: "user logged In",
+      user: obj,
+    });
+  } else {
+    res.status(422).json({
+      message: "password doesn't match",
     });
   }
 }
